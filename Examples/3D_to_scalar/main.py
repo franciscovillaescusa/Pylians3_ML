@@ -2,7 +2,6 @@ import numpy as np
 import sys,os
 import torch
 import torch.nn as nn
-import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torchvision.utils as vutils
@@ -17,16 +16,16 @@ f_out = '%s/data/A_values_3D.npy'%root
 seed  = 10 #to split cubes between training, validation and testing sets
 
 # architecture parameters
-lr         = 1e-5
-hidden     = 8
-dr         = 0.0
-wd         = 3e-2
-epochs     = 100000
-batch_size = 128
+lr         = 1e-6    #learning rate
+hidden     = 16      #number of hidden layers; network parameter
+dr         = 0.0     #dropout rate
+wd         = 2e-2    #weight decay
+epochs     = 100000  #number of epochs
+batch_size = 128     #batch size
 
 # output files
-f_loss  = 'losses/loss_b_6x_%s_dr=0.0_wd=3e-2.txt'%hidden
-f_model = 'models/model_b_6x_%s_dr=0.0_wd=3e-2.pt'%hidden
+f_loss  = 'losses/loss_b_6x_%s_dr=0.0_wd=2e-2.txt'%hidden
+f_model = 'models/model_b_6x_%s_dr=0.0_wd=2e-2.pt'%hidden
 ######################################################################################
 
 # use GPUs if available
@@ -57,6 +56,20 @@ if os.path.exists(f_model):  model.load_state_dict(torch.load(f_model))
 optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.5, 0.999), weight_decay=wd)
 
 
+# get the initial validation loss
+print('Computing initial validation loss')
+model.eval()
+min_valid_loss, num_points = 0.0, 0
+for x,y in valid_loader:
+    with torch.no_grad():
+        x    = x.to(device=device)
+        y    = y.to(device=device)
+        y_NN = model(x)
+        min_valid_loss += (criterion(y_NN, y).item())*x.shape[0]
+        num_points += x.shape[0]
+min_valid_loss /= num_points
+print('Initial valid loss = %.3e\n'%min_valid_loss)
+
 # see if results for this model are available
 if os.path.exists(f_loss):  
     dumb = np.loadtxt(f_loss, unpack=False)
@@ -64,7 +77,6 @@ if os.path.exists(f_loss):
 else:   offset = 0
 
 # do a loop over all the epochs
-min_loss = 1e8
 for epoch in range(offset, offset+epochs):
     
     # training
@@ -109,8 +121,8 @@ for epoch in range(offset, offset+epochs):
     test_loss = test_loss/num_points
 
     # verbose
-    if valid_loss<min_loss:
-        min_loss = valid_loss
+    if valid_loss<min_valid_loss:
+        min_valid_loss = valid_loss
         torch.save(model.state_dict(), f_model)
         print('Epoch %d: %.3e %.3e %.3e (saving)'%(epoch, train_loss, valid_loss, 
                                                    test_loss))
