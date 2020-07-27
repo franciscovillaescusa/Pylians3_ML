@@ -33,14 +33,10 @@ cudnn.benchmark = True      #May train faster but cost more memory
 # define loss function
 criterion = nn.MSELoss()
 
-# get the data
+# get the data and its size
 test_loader  = data.create_dataset_cubes('test',  seed, f_in, f_out, batch_size, 
                                          verbose=True)
-
-# get the number of elements in the test set
-size = 0
-for x, y in test_loader:
-    size += x.shape[0]
+size = len(test_loader)
 
 # define the array with the results
 pred = np.zeros((size, y.shape[1]), dtype=np.float32)
