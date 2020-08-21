@@ -50,7 +50,8 @@ test_loader  = data.create_dataset_cubes('test',  seed, f_in, f_out, batch_size,
 model = architecture.model_b(hidden).to(device)
 
 # load best-models, if they exists
-if os.path.exists(f_model):  model.load_state_dict(torch.load(f_model))
+if os.path.exists(f_model):  model.load_state_dict(torch.load(f_model,
+                                            map_location=torch.device(device)))
 
 # define the optimizer
 optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.5, 0.999), weight_decay=wd)
