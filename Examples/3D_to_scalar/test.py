@@ -47,7 +47,8 @@ true = np.zeros((size, y.shape[1]), dtype=np.float32)
 model = architecture.model_b(hidden).to(device)
 
 # load best-models, if they exists
-if os.path.exists(f_model):  model.load_state_dict(torch.load(f_model))
+if os.path.exists(f_model):  model.load_state_dict(torch.load(f_model,
+                                            map_location=torch.device(device)))
 else:                        raise Exception('File not found!!')
 
 # get the test loss
