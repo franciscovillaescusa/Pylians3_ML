@@ -1,0 +1,101 @@
+\documentclass[12pt,a4paper]{paper}
+\pdfoutput=1
+%\usepackage{jcappub}
+%\usepackage{times}
+
+%\usepackage{epstopdf}
+\usepackage{graphicx}% Include figure files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{empheq}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{bm}
+%\usepackage{unicode-math}
+\input epsf
+
+
+
+
+\newcommand{\apj}[0]{Astrophysical Journal}
+\newcommand{\apjl}[0]{Astrophysical Journal Letters}
+\newcommand{\aap}[0]{Astronomy and Astrophysics}
+\newcommand{\aaps}[0]{Astronomy and Astrophysics Supplement Series}
+\newcommand{\apjs}[0]{Astrophysical Journal Supplement}
+\newcommand{\aj}[0]{The Astronomical Journal}
+\newcommand{\araa}[0]{Annual Review of Astronomy \& Astrophysics}
+\newcommand{\AeA}[0]{Astronomy \& Astrophysics}
+\newcommand{\mnras}[0]{Montly Notices of the Royal Astronomical Society}
+\newcommand{\AeAS}[0]{A\&AS}
+\newcommand{\AAS}[0]{AAS}
+\newcommand{\ASP}[0]{ASP}
+\newcommand{\ASPp}[0]{ASPp}
+\newcommand{\AdSpR}[0]{AdSpR}
+\newcommand{\SPIE}[0]{SPIE}
+\newcommand{\AsNa}[0]{Astronomische Nachrichten}
+\newcommand{\pasp}[0]{Publications of the Astronomical Society of the Pacific}
+\newcommand{\fcp}[0]{Fundamentals of Cosmic Physics}
+\newcommand{\nat}[0]{Nature}
+\newcommand{\apss}[0]{Astrophysics and Space Science}
+\newcommand{\arxiv}[0]{ArXiv e-prints}
+\newcommand{\actaa}[0]{Acta Astronomica}
+\newcommand{\ssr}[0]{Space Science Reviews}
+\newcommand{\physrep}[0]{Physics Reports}
+\newcommand{\prd}[0]{Physical Review D}
+\newcommand{\prc}[0]{Physical Review C}
+\newcommand{\pasj}[0]{Publ. of the Astronomical Society of Japan}
+\newcommand{\na}[0]{New Astronomy}
+\newcommand{\jcap}[0]{Journal of Cosmology and Astroparticle Physics}
+
+
+\newcommand \Mnu{$\Sigma_i m_{\nu_i}$ }
+\newcommand \be{\begin{equation}}
+\newcommand \ee{\end{equation}}
+
+
+\begin{document}
+
+%\title{Relation between the 1D and 3D P(k)}
+%\author{Francisco Villaescusa-Navarro,}  
+
+  
+%\maketitle
+
+%In these notes we derive the relation between the 1D and 3D power spectra and discuss the correct way to compare the 1D power spectrum measured from N-body simulations to the one derived from the 3D one.
+
+
+
+If you have an 2D or 3D field with ${\rm SIZE_{IN}}\times{\rm SIZE_{IN}}$, and apply CNNs, the 
+
+\begin{equation}
+{\rm SIZE_{OUT}} = \frac{{\rm SIZE_{IN}} + 2{\rm PADDING} - {\rm KERNEL}}{{\rm STRIDES}} + 1
+\end{equation}
+
+\vspace{1cm}
+
+For Transposed convolutional neural nets the expression reads
+\begin{equation}
+{\rm SIZE_{OUT}} = ({\rm SIZE_{IN}-1}){\rm STRIDES} - 2{\rm PADDING} + {\rm KERNEL}
+\end{equation}
+
+When training CNNs, the dimensions of the images to input into the network should be
+\begin{equation}
+[ {\rm BATCH\,\,SIZE, \,\,CHANNELS, \,\,HEIGHT, \,\,WIDTH} ]
+\end{equation}
+
+%\appendix
+
+
+%\bibliographystyle{JHEPb}
+\bibliographystyle{unsrt}
+\bibliography{references} 
+
+
+
+
+
+
+\end{document}
