@@ -187,3 +187,23 @@ def dynamic_model(trial, input_size, output_size, max_layers=3, max_neurons_laye
 
     # return the model
     return nn.Sequential(*layers)
+
+def dynamic_model2(input_size, output_size, n_layers, hidden, dr):
+
+    # define the tuple containing the different layers
+    layers = []
+
+    # get the hidden layers
+    in_features = input_size
+    for i in range(n_layers):
+        out_features = hidden[i]
+        layers.append(nn.Linear(in_features, out_features))
+        layers.append(nn.LeakyReLU(0.2))
+        layers.append(nn.Dropout(dr[i]))
+        in_features = out_features
+
+    # get the last layer
+    layers.append(nn.Linear(out_features, output_size))
+
+    # return the model
+    return nn.Sequential(*layers)

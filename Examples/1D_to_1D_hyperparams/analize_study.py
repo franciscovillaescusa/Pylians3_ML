@@ -8,7 +8,7 @@ study_name = 'params_2_SFRH_TPE'
 storage    = 'sqlite:///TPE.db'
 
 # whether print information of a particular trial
-individual_trials = [225, 582, 744] #if None, nothing is printed
+individual_trials = None #if None, nothing is printed
 #################################################################################
 
 # load the study

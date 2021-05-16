@@ -8,8 +8,7 @@ import optuna
 
 class Objective(object):
     def __init__(self, input_size, output_size, max_layers, max_neurons_layers, device,
-                 epochs, seed, realizations, root_in, bins_SFRH, sim, batch_size, 
-                 root_out):
+                 epochs, seed, batch_size):
 
         self.input_size         = input_size
         self.output_size        = output_size
@@ -18,12 +17,7 @@ class Objective(object):
         self.device             = device
         self.epochs             = epochs
         self.seed               = seed
-        self.realizations       = realizations
-        self.root_in            = root_in
-        self.bins_SFRH          = bins_SFRH
-        self.sim                = sim
         self.batch_size         = batch_size
-        self.root_out           = root_out
 
     def __call__(self, trial):
 
@@ -40,19 +34,17 @@ class Objective(object):
         wd = trial.suggest_float("wd", 1e-8, 1e0,  log=True)
 
         # define the optimizer
-        optimizer = torch.optim.Adam(model.parameters(), lr=lr, betas=(0.5, 0.999), 
-                                     weight_decay=wd)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=lr, betas=(0.5, 0.999), 
+                                      weight_decay=wd)
 
         # define loss function
         criterion = nn.MSELoss() 
 
         # get the data
-        train_loader = data.create_dataset('train', self.seed, self.realizations, 
-                                           self.root_in, self.bins_SFRH, self.sim, 
-                                           self.batch_size, self.root_out)
-        valid_loader = data.create_dataset('valid', self.seed, self.realizations, 
-                                           self.root_in, self.bins_SFRH, self.sim, 
-                                           self.batch_size, self.root_out)
+        train_loader = data.create_dataset('train', self.seed, f_Pk, f_Pk_norm, 
+                                           f_params, self.batch_size, shuffle=True)
+        valid_loader = data.create_dataset('valid', self.seed, f_Pk, f_Pk_norm, 
+                                           f_params, self.batch_size, shuffle=False)
 
         # train/validate model
         min_valid = 1e40
@@ -95,28 +87,27 @@ class Objective(object):
 
 ##################################### INPUT ##########################################
 # data parameters
-root_in      = '/mnt/ceph/users/camels'
-root_out     = '/mnt/ceph/users/camels/Results/neural_nets/params_2_SFRH/SIMBA'
-sim          = 'SIMBA'
-seed         = 1
-realizations = 1000
-bins_SFRH    = 100
+f_Pk      = '/mnt/ceph/users/camels/Software/LFI_GNN/data_preprocessing/Pk_galaxies_IllustrisTNG_LH_33_kmax=20.0.npy'
+f_Pk_norm = None
+f_params  = '/mnt/ceph/users/camels/Software/IllustrisTNG/latin_hypercube_params.txt' 
+seed      = 1
 
 # architecture parameters
-input_size         = 6
-output_size        = bins_SFRH
+input_size         = 79
+output_size        = 2
 max_layers         = 5
 max_neurons_layers = 1000
 
 # training parameters
-batch_size = 256
-epochs     = 600
+batch_size = 32
+epochs     = 1000
 
 # optuna parameters
-study_name = 'params_2_SFRH_TPE'
-n_trials   = 1000 #set to None for infinite
-storage    = 'sqlite:///TPE.db'
-n_jobs     = 28
+study_name       = 'Pk_2_params'
+n_trials         = 1000 #set to None for infinite
+storage          = 'sqlite:///TPE.db'
+n_jobs           = 1
+n_startup_trials = 20 #random sample the space before using the sampler
 ######################################################################################
 
 # use GPUs if available
@@ -128,28 +119,8 @@ else:
     device = torch.device('cpu')
 
 # define the optuna study and optimize it
-objective = Objective(input_size, output_size, max_layers, max_neurons_layers, device,
-            epochs, seed, realizations, root_in, bins_SFRH, sim, batch_size, root_out)
-#sampler = optuna.samplers.RandomSampler()
-sampler = optuna.samplers.TPESampler(n_startup_trials=10)
+objective = Objective(input_size, output_size, max_layers, max_neurons_layers, 
+                      device, epochs, seed, batch_size)
+sampler = optuna.samplers.TPESampler(n_startup_trials=n_startup_trials)
 study = optuna.create_study(study_name=study_name, sampler=sampler, storage=storage)
 study.optimize(objective, n_trials, n_jobs=n_jobs)
-
-
-# get the number of pruned and complete trials
-pruned_trials = [t for t in study.trials if t.state == optuna.trial.TrialState.PRUNED]
-complete_trials = [t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE]
-
-# print some verbose
-print("Study statistics: ")
-print("  Number of finished trials: ", len(study.trials))
-print("  Number of pruned trials:   ", len(pruned_trials))
-print("  Number of complete trials: ", len(complete_trials))
-
-# parameters of the best trial
-trial = study.best_trial
-print("Best trial: number {}".format(trial.number))
-print("  Value: {}".format(trial.value))
-print("  Params: ")
-for key, value in trial.params.items():
-    print("    {}: {}".format(key, value))
