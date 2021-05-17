@@ -10,12 +10,12 @@ import optuna
 f_Pk      = 'Pk_galaxies_SIMBA_LH_33_kmax=20.0.npy'        #file with Pk
 f_Pk_norm = 'Pk_galaxies_IllustrisTNG_LH_33_kmax=20.0.npy' #file with Pk to normalize Pk
 f_params  = 'latin_hypercube_params.txt'                   #file with parameters
-seed      = 1                                 #seed to split data in train/valid/test
-mode      = 'all'   #'train','valid','test' or 'all'
+seed      = 1                                    #seed to split data in train/valid/test
+mode      = 'all'     #'train','valid','test' or 'all'
 
 # architecture parameters
-input_size  = 79   #dimensions of input data
-output_size = 2    #dimensions of output data
+input_size  = 79 #number of bins in Pk
+output_size = 4  #number of parameters to predict (posterior mean + std)
 
 # training parameters
 batch_size = 32
@@ -70,14 +70,11 @@ model = architecture.dynamic_model2(input_size, output_size, n_layers, hidden, d
 model.to(device)    
 
 # load best-model, if it exists
+print('Loading model...')
 if os.path.exists(fmodel):  
-    print('Loading model...')
     model.load_state_dict(torch.load(fmodel, map_location=torch.device(device)))
-else:
+else:  
     raise Exception('model doesnt exists!!!')
-
-# define loss function
-criterion = nn.MSELoss() 
 
 # get the data
 test_loader = data.create_dataset(mode, seed, f_Pk, f_Pk_norm, f_params, 
@@ -85,23 +82,33 @@ test_loader = data.create_dataset(mode, seed, f_Pk, f_Pk_norm, f_params,
 test_points = 0
 for x,y in test_loader:  test_points += x.shape[0]
 
-# define the arrays containing the true and predicted value of the parameters
-params  = output_size
-results = np.zeros((test_points, 2*params), dtype=np.float32)
+# define the matrix containing the true and predicted value of the parameters + errors
+params  = output_size//2
+results = np.zeros((test_points, 3*params), dtype=np.float32)
 
 # test the model
-test_loss, points = 0.0, 0
+test_loss1, test_loss = torch.zeros(len(g)).to(device), 0.0
+test_loss2, points    = torch.zeros(len(g)).to(device), 0
 model.eval()
-with torch.no_grad():
-    for x, y in test_loader:
-        bs   = x.shape[0]  #batch size
-        x, y = x.to(device), y.to(device)
-        y_NN = model(x)
-        test_loss += (criterion(y_NN, y).item())*bs
+for x, y in test_loader:
+    with torch.no_grad():
+        bs    = x.shape[0]         #batch size
+        x     = x.to(device)       #maps
+        y     = y.to(device)[:,g]  #parameters
+        p     = model(x)           #NN output
+        y_NN  = p[:,g]             #posterior mean
+        e_NN  = p[:,h]             #posterior std
+        loss1 = torch.mean((y_NN - y)**2,                axis=0)
+        loss2 = torch.mean(((y_NN - y)**2 - e_NN**2)**2, axis=0)
+        loss  = torch.mean(torch.log(loss1) + torch.log(loss2))
+        valid_loss1 += loss1*bs
+        valid_loss2 += loss2*bs
         results[points:points+bs,0*params:1*params] = y.cpu().numpy()
         results[points:points+bs,1*params:2*params] = y_NN.cpu().numpy()
-        points    += bs
-test_loss /= points
+        results[points:points+bs,2*params:3*params] = e_NN.cpu().numpy()
+        points     += bs
+test_loss = torch.log(test_loss1/points) + torch.log(test_loss2/points)
+test_loss = torch.mean(test_loss).item()
 print('Test loss:', test_loss)
 
 # denormalize results here
