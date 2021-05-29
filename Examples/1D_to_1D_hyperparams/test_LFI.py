@@ -19,6 +19,8 @@ output_size = 4  #number of parameters to predict (posterior mean + std)
 
 # training parameters
 batch_size = 32
+g          = [0,1]
+h          = [2,3]
 
 # optuna parameters
 study_name = 'Pk_2_params'
@@ -83,7 +85,7 @@ test_points = 0
 for x,y in test_loader:  test_points += x.shape[0]
 
 # define the matrix containing the true and predicted value of the parameters + errors
-params  = output_size//2
+params  = len(g)
 results = np.zeros((test_points, 3*params), dtype=np.float32)
 
 # test the model
@@ -101,8 +103,8 @@ for x, y in test_loader:
         loss1 = torch.mean((y_NN - y)**2,                axis=0)
         loss2 = torch.mean(((y_NN - y)**2 - e_NN**2)**2, axis=0)
         loss  = torch.mean(torch.log(loss1) + torch.log(loss2))
-        valid_loss1 += loss1*bs
-        valid_loss2 += loss2*bs
+        test_loss1 += loss1*bs
+        test_loss2 += loss2*bs
         results[points:points+bs,0*params:1*params] = y.cpu().numpy()
         results[points:points+bs,1*params:2*params] = y_NN.cpu().numpy()
         results[points:points+bs,2*params:3*params] = e_NN.cpu().numpy()
@@ -112,8 +114,12 @@ test_loss = torch.mean(test_loss).item()
 print('Test loss:', test_loss)
 
 # denormalize results here
-#
-#
+#minimum = np.array([0.1, 0.6, 0.25, 0.25, 0.5, 0.5])[g]
+#maximum = np.array([0.5, 1.0, 4.00, 4.00, 2.0, 2.0])[g]
+#results[:,0*params:1*params] = results[:,0*params:1*params]*(maximum-minimum)+minimum
+#results[:,1*params:2*params] = results[:,1*params:2*params]*(maximum-minimum)+minimum
+#results[:,2*params:3*params] = results[:,2*params:3*params]*(maximum-minimum)
+
 
 # save results to file
 np.savetxt(fout, results)

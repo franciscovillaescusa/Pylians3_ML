@@ -14,7 +14,7 @@ class make_dataset():
         if f_Pk_norm is None:
             mean, std = np.mean(Pk, axis=0), np.std(Pk, axis=0)
         else:
-            Pk_norm = np.log10(np.load(f_Pk))
+            Pk_norm = np.log10(np.load(f_Pk_norm))
             mean, std = np.mean(Pk_norm, axis=0), np.std(Pk_norm, axis=0)
         Pk = (Pk - mean)/std
 
