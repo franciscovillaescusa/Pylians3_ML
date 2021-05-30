@@ -141,6 +141,10 @@ else:
     print('CUDA Not Available')
     device = torch.device('cpu')
 
+# create output folders if they dont exist
+for fout in ['models', 'losses']:
+    if not(os.path.exists(fout)):  os.system('mkdir %s'%fout)
+
 # define the optuna study and optimize it
 objective = Objective(input_size, output_size, max_layers, max_neurons_layers, 
                       device, epochs, seed, batch_size)
