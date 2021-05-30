@@ -8,7 +8,7 @@ import optuna
 
 class Objective(object):
     def __init__(self, input_size, output_size, max_layers, max_neurons_layers, device,
-                 epochs, seed, batch_size):
+                 epochs, seed, batch_size, workers):
 
         self.input_size         = input_size
         self.output_size        = output_size
@@ -18,6 +18,7 @@ class Objective(object):
         self.epochs             = epochs
         self.seed               = seed
         self.batch_size         = batch_size
+        self.workers            = workers
 
     def __call__(self, trial):
 
@@ -39,9 +40,11 @@ class Objective(object):
 
         # get the data
         train_loader = data.create_dataset('train', self.seed, f_Pk, f_Pk_norm, 
-                                           f_params, self.batch_size, shuffle=True)
+                                           f_params, self.batch_size, 
+                                           shuffle=True, workers=self.workers)
         valid_loader = data.create_dataset('valid', self.seed, f_Pk, f_Pk_norm, 
-                                           f_params, self.batch_size, shuffle=False)
+                                           f_params, self.batch_size, 
+                                           shuffle=False, workers=self.workers)
 
         # train/validate model
         min_valid = 1e40
@@ -122,6 +125,7 @@ max_neurons_layers = 1000
 # training parameters
 batch_size = 32
 epochs     = 1000
+workers    = 10     #number of cpus to load the data 
 g          = [0,1]  #minimize loss using parameters 0 and 1
 h          = [2,3]  #minimize loss using errors of parameters 0 and 1
 
@@ -147,7 +151,7 @@ for fout in ['models', 'losses']:
 
 # define the optuna study and optimize it
 objective = Objective(input_size, output_size, max_layers, max_neurons_layers, 
-                      device, epochs, seed, batch_size)
+                      device, epochs, seed, batch_size, workers)
 sampler = optuna.samplers.TPESampler(n_startup_trials=n_startup_trials)
 study = optuna.create_study(study_name=study_name, sampler=sampler, storage=storage,
                             load_if_exists=True)

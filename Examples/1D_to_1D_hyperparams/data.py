@@ -63,6 +63,8 @@ class make_dataset():
 # f_params -----------> files with the value of the cosmological + astrophysical params
 # batch_size ---------> batch size
 # shuffle ------------> whether to shuffle the data or not
-def create_dataset(mode, seed, f_Pk, f_Pk_norm, f_params, batch_size, shuffle):
+# workers --------> number of CPUs to load the data in parallel
+def create_dataset(mode, seed, f_Pk, f_Pk_norm, f_params, batch_size, shuffle, workers):
     data_set = make_dataset(mode, seed, f_Pk, f_Pk_norm, f_params)
-    return DataLoader(dataset=data_set, batch_size=batch_size, shuffle=shuffle)
+    return DataLoader(dataset=data_set, batch_size=batch_size, shuffle=shuffle,
+                      num_workers=workers)
