@@ -122,5 +122,6 @@ else:
 objective = Objective(input_size, output_size, max_layers, max_neurons_layers, 
                       device, epochs, seed, batch_size)
 sampler = optuna.samplers.TPESampler(n_startup_trials=n_startup_trials)
-study = optuna.create_study(study_name=study_name, sampler=sampler, storage=storage)
+study = optuna.create_study(study_name=study_name, sampler=sampler, storage=storage,
+                            load_if_exists=True)
 study.optimize(objective, n_trials, n_jobs=n_jobs)
