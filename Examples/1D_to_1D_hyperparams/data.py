@@ -41,7 +41,7 @@ class make_dataset():
 
         # select the data in the considered mode
         Pk     = Pk[indexes]
-        params = params[indexes,:2]
+        params = params[indexes]
 
         # define size, input and output matrices
         self.size   = size
