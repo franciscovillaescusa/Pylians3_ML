@@ -19,6 +19,7 @@ output_size = 4  #number of parameters to predict (posterior mean + std)
 
 # training parameters
 batch_size = 32
+workers    = 1
 g          = [0,1]
 h          = [2,3]
 
@@ -80,7 +81,7 @@ else:
 
 # get the data
 test_loader = data.create_dataset(mode, seed, f_Pk, f_Pk_norm, f_params, 
-                                  batch_size, shuffle=False)
+                                  batch_size, shuffle=False, workers=workers)
 test_points = 0
 for x,y in test_loader:  test_points += x.shape[0]
 
